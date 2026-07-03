@@ -3,8 +3,9 @@ import os
 from ingest import save_pdf_on_disk, get_pdf_content, split_content_into_chunks, embed_chunks, store_in_chroma, ingest_graph
 from query import embed_ques, get_searched_chunks_from_chroma, get_ans_from_claud, get_related_from_graph
 import chromadb
-from model import QueryRequest, AgentRequest
-from agents import agent
+from model import QueryRequest, AgentRequest, EvaluateRequest
+from agents import agent, evaluator_node
+import uuid
 
 app = FastAPI()
 
@@ -40,5 +41,42 @@ def query_endpoint(request: QueryRequest):
 
 @app.post("/agent")
 def agent_endpoint(request: AgentRequest):
-    result = agent.invoke({"question": request.question})
-    return result
+    thread_id = str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+    result = agent.invoke({"question": request.question}, config=config)
+    return {**result, "thread_id": thread_id}
+
+
+@app.post("/evaluate")
+def evaluate_endpoint(request: EvaluateRequest):
+    try: 
+        config = {"configurable":{"thread_id":request.thread_id}}
+        
+        current_state = agent.get_state(config)
+        print("Current state: ", current_state)
+        print("Next nodes:", current_state.next)
+        
+        agent.update_state(
+            config, 
+            {"user_answer":request.user_answer},
+            as_node="quiz"  # ← tells LangGraph this update comes from after quiz nod, — so it knows to run evaluate next, not restart from orchestrator.
+        )
+        
+        # invoke() = give me the final answer
+        # stream() = give me updates as each step completes
+
+        print("Starting stream...")
+        result = None
+        for state in agent.stream( # stream() — runs graph and yields state after each node.
+            None,  # None means "don't start fresh, resume from interrupt point."
+            config=config
+        ):
+            print("State chunk:", state)
+            result=state
+        print("Stream done, result: ", result)
+
+        print("Final result:", result)
+        return {"evaluation":result.get("evaluate", {}).get("evaluation", "No evaluation")}
+    except Exception as e:
+        print("ERR: ", str(e))
+        raise e

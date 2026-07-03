@@ -1,18 +1,12 @@
-from typing import TypedDict, List
 from langgraph.graph import StateGraph, END
 from config import anthropic_client
 from query import embed_ques, get_related_from_graph, get_searched_chunks_from_chroma, get_related_from_graph, get_ans_from_claud
+from model import EduMindState
+from langgraph.checkpoint.sqlite import SqliteSaver
+import sqlite3
 
-
-class EduMindState(TypedDict):
-    question: str
-    intent: str     # "answer", "quiz", "summarize"
-    chunks: List[str]
-    related_concepts: List[str]
-    answer: str
-    quiz_questions: List[str]
-    summary: str
-
+conn = sqlite3.connect("checkpoints.db", check_same_thread=False)
+checkpointer = SqliteSaver(conn)
 
 def orchestrator_node(state: EduMindState):
     response = anthropic_client.messages.create(
@@ -64,6 +58,21 @@ def summarizer_node(state: EduMindState):
     return {"summary": response.content[0].text}
 
 
+def evaluator_node(state: EduMindState):
+    print("EVALUATOR RUNNING")
+    context = "\n\n".join(state["chunks"])
+    quiz = state["quiz_questions"]
+    user_answer = state["user_answer"]
+    
+    response = anthropic_client.messages.create(
+        model="claude-opus-4-5",
+        max_tokens=512,
+        system="You are an evaluator. Score the user's answer against the quiz questions and context. Give a score out of 10 and explain what was correct and what was missing.",
+        messages=[{"role": "user", "content": f"Quiz Questions:\n{quiz}\n\nUser Answer:\n{user_answer}\n\nContext:\n{context}"}]
+    )
+    return {"evaluation": response.content[0].text}
+
+
 def route(state: EduMindState):
     return state["intent"]
 
@@ -77,6 +86,7 @@ def build_graph():
     graph.add_node("answer", answer_node)
     graph.add_node("quiz", quiz_node)
     graph.add_node("summarize", summarizer_node)
+    graph.add_node("evaluate", evaluator_node)
 
     # Entry point
     graph.set_entry_point("orchestrator")
@@ -88,15 +98,21 @@ def build_graph():
     graph.add_conditional_edges("retrieval", route, {
         "answer": "answer",
         "quiz": "quiz",
-        "summarize": "summarize"
+        "summarize": "summarize",
+        "evaluate": "evaluate"
     })
+
+    graph.add_edge("quiz", "evaluate")
 
     # All agents end after their node
     graph.add_edge("answer", END)
-    graph.add_edge("quiz", END)
     graph.add_edge("summarize", END)
+    graph.add_edge("evaluate", END)
 
-    return graph.compile()
+    return graph.compile(
+        checkpointer=checkpointer,
+        interrupt_after=["quiz"]
+    )
 
 agent = build_graph()
 

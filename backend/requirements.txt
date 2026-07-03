@@ -11,3 +11,5 @@ python-dotenv
 neo4j
 langgraph
 langchain-anthropic
+langgraph-checkpoint-sqlite
+langsmith
