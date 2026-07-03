@@ -17,17 +17,13 @@ def extract_entities(chunk: str):
         system=f"Extract concepts and their relationships from the text. Return JSON only in this format: {json.dumps(template)}",
         messages=[{"role": "user", "content": chunk}]
     )
-    raw = response.content[0].text
-    print("Extracted entities (claud resp): ", raw)
-    
     raw = response.content[0].text.strip()
-    if raw.startswith("```"):
-        raw = raw.split("```")[1]
-        if raw.startswith("json"):
-            raw = raw[4:]
-
-    print("raw.strip(): ", raw.strip())
-    return raw.strip()
+    
+    json_match = re.search(r'\{.*\}', raw, re.DOTALL)
+    if not json_match:
+        print("Claude returned unexpected:", raw)
+        return json.dumps({"entities": [], "relationships": []})
+    return json_match.group()
 
 def store_entities(entities_json: str):
     data = json.loads(entities_json)

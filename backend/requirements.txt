@@ -9,3 +9,5 @@ chromadb
 anthropic
 python-dotenv
 neo4j
+langgraph
+langchain-anthropic

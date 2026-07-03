@@ -3,7 +3,8 @@ import os
 from ingest import save_pdf_on_disk, get_pdf_content, split_content_into_chunks, embed_chunks, store_in_chroma, ingest_graph
 from query import embed_ques, get_searched_chunks_from_chroma, get_ans_from_claud, get_related_from_graph
 import chromadb
-from model import QueryRequest
+from model import QueryRequest, AgentRequest
+from agents import agent
 
 app = FastAPI()
 
@@ -35,3 +36,9 @@ def query_endpoint(request: QueryRequest):
         "source_chunks": chunks,
         "related_concepts": graph_concepts
     }
+
+
+@app.post("/agent")
+def agent_endpoint(request: AgentRequest):
+    result = agent.invoke({"question": request.question})
+    return result
