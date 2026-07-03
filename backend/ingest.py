@@ -1,6 +1,8 @@
 from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
+from config import model, collection
+from graph import extract_entities, store_entities
 
 async def save_pdf_on_disk(file):
     contents = await file.read()
@@ -17,9 +19,9 @@ def get_pdf_content(filename: str):
         full_text += page.extract_text()
     return full_text
 
-def split_content_into_chunks(filename: str):
+def split_content_into_chunks(pdf_content: str):
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
-    chunks = splitter.split_text(full_text)
+    chunks = splitter.split_text(pdf_content)
     print(f"Spiltted into: {len(chunks)} chunks")
     return chunks
 
@@ -35,6 +37,14 @@ def store_in_chroma(chunks: list[str], embeddings: list):
         embeddings=embeddings,
         ids=[str(i) for i in range(len(chunks))]
     )
+
+
+def ingest_graph(chunks: list[str]):
+    for chunk in chunks:
+        entities_json = extract_entities(chunk)
+        store_entities(entities_json)
+        print(f"Stored entities for chunk: {chunk}")
+
 
 
 

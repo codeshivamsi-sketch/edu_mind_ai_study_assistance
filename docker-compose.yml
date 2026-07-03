@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  neo4j:
+    image: neo4j:latest
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    volumes:
+      - neo4j_data:/data
+      - neo4j_data:/var/lib/neo4j/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    volumes:
+      - ./backend:/app
+    depends_on:
+      - neo4j
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  neo4j_data:
