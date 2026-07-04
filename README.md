@@ -15,22 +15,6 @@ An AI-powered study assistant built with RAG, Knowledge Graph, Multi-agent orche
 
 ---
 
-## Screenshots
-
-### Knowledge Graph (Neo4j)
-![Neo4j](docs/neo4j.png)
-
-### LangSmith Tracing
-![LangSmith](docs/langsmith.png)
-
-### RAGAs Evaluation
-![RAGAs](docs/ragas.png)
-
-### Claude Desktop MCP
-![MCP](docs/mcp.png)
-
----
-
 ## Architecture Overview
 
 ```mermaid
@@ -249,6 +233,8 @@ GET /health
 - Hybrid retrieval — vector search + graph traversal merged into context
 - Enables questions like "what should I learn before neural networks?"
 
+![Neo4j](docs/neo4j.png)
+
 ### Phase 3 — Agentic Workflow with LangGraph
 - Orchestrator classifies intent and routes to the right agent
 - Retrieval Agent queries both ChromaDB and Neo4j
@@ -258,6 +244,8 @@ GET /health
 - Human-in-the-loop: graph pauses after quiz, resumes after user answers
 - SQLite checkpointing persists state between API calls
 - LangSmith tracing for full observability
+
+![LangSmith](docs/langsmith.png)
 
 ### Phase 4 — RAG Evaluation with RAGAs
 - 30-question golden dataset covering all curriculum chapters
@@ -273,6 +261,8 @@ GET /health
 | Context Recall | 1.00 | All needed information was present in retrieved chunks |
 
 **Key finding:** Context precision at 0.70 indicates fixed-size chunking (500 chars) retrieves some noise alongside relevant chunks. Faithfulness and recall at 1.0 confirm the system never hallucinates and never misses needed information.
+
+![RAGAs](docs/ragas.png)
 
 ### Phase 5 — MCP Server
 - Exposed EduMind as an MCP server using the Anthropic MCP Python SDK
@@ -307,3 +297,5 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```
 
 Restart Claude Desktop. Make sure Docker is running first.
+
+![MCP](docs/mcp.png)
