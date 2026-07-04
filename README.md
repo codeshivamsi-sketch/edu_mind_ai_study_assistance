@@ -15,6 +15,22 @@ An AI-powered study assistant built with RAG, Knowledge Graph, Multi-agent orche
 
 ---
 
+## Screenshots
+
+### Knowledge Graph (Neo4j)
+![Neo4j](docs/neo4j.png)
+
+### LangSmith Tracing
+![LangSmith](docs/langsmith.png)
+
+### RAGAs Evaluation
+![RAGAs](docs/ragas.png)
+
+### Claude Desktop MCP
+![MCP](docs/mcp.png)
+
+---
+
 ## Architecture Overview
 
 ```mermaid
@@ -100,6 +116,11 @@ edu_mind_ai/
 │   │   └── requirements-eval.txt
 │   ├── requirements.txt
 │   └── Dockerfile
+├── docs/
+│   ├── neo4j.png                # Knowledge graph screenshot
+│   ├── langsmith.png            # LangSmith tracing screenshot
+│   ├── ragas.png                # RAGAs eval scores screenshot
+│   └── mcp.png                  # Claude Desktop MCP tool call screenshot
 ├── docker-compose.yml
 └── README.md
 ```
@@ -145,16 +166,16 @@ LANGCHAIN_PROJECT=edumind
 
 ```bash
 # Create eval environment (Python 3.11 required)
-python3.11 -m venv backend/eval/eval_venv
-source backend/eval/eval_venv/bin/activate
-pip install -r backend/eval/requirements-eval.txt
+cd backend/eval
+python3.11 -m venv eval_venv
+source eval_venv/bin/activate
+pip install -r requirements-eval.txt
 
 # Make sure Docker is running first
 docker-compose up -d
 
 # Run RAGAs evaluation
-cd backend
-python eval/run_eval.py
+python run_eval.py
 ```
 
 ---
@@ -247,7 +268,7 @@ GET /health
 | Metric | Score | What it measures |
 |--------|-------|-----------------|
 | Faithfulness | 1.00 | Answer grounded in retrieved context — no hallucination |
-| Answer Relevancy | 0.89 | Answer directly addresses the question |
+| Answer Relevancy | 0.90 | Answer directly addresses the question |
 | Context Precision | 0.70 | Retrieved chunks were relevant to the question |
 | Context Recall | 1.00 | All needed information was present in retrieved chunks |
 
@@ -278,7 +299,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "edumind": {
-      "command": "/path/to/edu_mind_ai/venv/bin/python",
+      "command": "/path/to/edu_mind_ai/backend/venv/bin/python",
       "args": ["/path/to/edu_mind_ai/backend/mcp/server.py"]
     }
   }
