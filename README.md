@@ -180,6 +180,22 @@ Content-Type: application/json
 {"evaluation": "Score: 7/10 — Great answer on..."}
 ```
 
+## Running Evaluation
+
+```bash
+# Create eval environment (Python 3.11 required)
+python3.11 -m venv backend/eval/eval_venv
+source backend/eval/eval_venv/bin/activate
+pip install -r backend/eval/requirements-eval.txt
+
+# Make sure Docker is running first
+docker-compose up -d
+
+# Run RAGAs evaluation
+cd backend
+python eval/run_eval.py
+```
+
 ### Health Check
 ```bash
 GET /health
