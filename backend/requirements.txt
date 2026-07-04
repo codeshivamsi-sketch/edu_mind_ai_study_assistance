@@ -13,3 +13,6 @@ langgraph
 langchain-anthropic
 langgraph-checkpoint-sqlite
 langsmith
+ragas==0.1.21
+datasets
+langchain-community
