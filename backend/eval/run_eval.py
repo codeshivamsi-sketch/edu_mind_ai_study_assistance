@@ -17,7 +17,6 @@ print("KEY: ", os.getenv("ANTHROPIC_API_KEY"))
 llm = LangchainLLMWrapper(ChatAnthropic(
     model="claude-opus-4-5",
     anthropic_api_key=os.getenv("ANTHROPIC_API_KEY")
-    # anthropic_api_key="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"
 ))
 
 # Embeddings → local sentence-transformers (no OpenAI needed)
