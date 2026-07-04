@@ -1,8 +1,8 @@
 from pypdf import PdfReader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import os
-from config import model, collection
-from graph import extract_entities, store_entities
+from core.config import model, collection
+from core.graph import extract_entities, store_entities
 
 async def save_pdf_on_disk(file):
     contents = await file.read()
@@ -44,9 +44,3 @@ def ingest_graph(chunks: list[str]):
         entities_json = extract_entities(chunk)
         store_entities(entities_json)
         print(f"Stored entities for chunk: {chunk}")
-
-
-
-
-    
-    

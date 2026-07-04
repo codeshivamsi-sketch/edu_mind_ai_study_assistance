@@ -1,7 +1,7 @@
 from langgraph.graph import StateGraph, END
-from config import anthropic_client
-from query import embed_ques, get_related_from_graph, get_searched_chunks_from_chroma, get_related_from_graph, get_ans_from_claud
-from model import EduMindState
+from core.config import anthropic_client
+from core.query import embed_ques, get_related_from_graph, get_searched_chunks_from_chroma, get_ans_from_claud
+from core.model import EduMindState
 from langgraph.checkpoint.sqlite import SqliteSaver
 import sqlite3
 
@@ -63,7 +63,7 @@ def evaluator_node(state: EduMindState):
     context = "\n\n".join(state["chunks"])
     quiz = state["quiz_questions"]
     user_answer = state["user_answer"]
-    
+
     response = anthropic_client.messages.create(
         model="claude-opus-4-5",
         max_tokens=512,
@@ -83,7 +83,7 @@ def build_graph():
     # Add nodes
     graph.add_node("orchestrator", orchestrator_node)
     graph.add_node("retrieval", retrieval_node)
-    graph.add_node("answer", answer_node)
+    graph.add_node("answer_node", answer_node)
     graph.add_node("quiz", quiz_node)
     graph.add_node("summarize", summarizer_node)
     graph.add_node("evaluate", evaluator_node)
@@ -96,7 +96,7 @@ def build_graph():
 
     # Retrieval routes based on intent
     graph.add_conditional_edges("retrieval", route, {
-        "answer": "answer",
+        "answer": "answer_node",
         "quiz": "quiz",
         "summarize": "summarize",
         "evaluate": "evaluate"
@@ -105,7 +105,7 @@ def build_graph():
     graph.add_edge("quiz", "evaluate")
 
     # All agents end after their node
-    graph.add_edge("answer", END)
+    graph.add_edge("answer_node", END)
     graph.add_edge("summarize", END)
     graph.add_edge("evaluate", END)
 
@@ -115,4 +115,3 @@ def build_graph():
     )
 
 agent = build_graph()
-

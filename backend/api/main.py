@@ -1,10 +1,10 @@
 from fastapi import FastAPI, UploadFile, File
 import os
-from ingest import save_pdf_on_disk, get_pdf_content, split_content_into_chunks, embed_chunks, store_in_chroma, ingest_graph
-from query import embed_ques, get_searched_chunks_from_chroma, get_ans_from_claud, get_related_from_graph
+from core.ingest import save_pdf_on_disk, get_pdf_content, split_content_into_chunks, embed_chunks, store_in_chroma, ingest_graph
+from core.query import embed_ques, get_searched_chunks_from_chroma, get_ans_from_claud, get_related_from_graph
 import chromadb
-from model import QueryRequest, AgentRequest, EvaluateRequest
-from agents import agent, evaluator_node
+from core.model import QueryRequest, AgentRequest, EvaluateRequest
+from agents.agents import agent, evaluator_node
 import uuid
 
 app = FastAPI()
@@ -49,19 +49,19 @@ def agent_endpoint(request: AgentRequest):
 
 @app.post("/evaluate")
 def evaluate_endpoint(request: EvaluateRequest):
-    try: 
+    try:
         config = {"configurable":{"thread_id":request.thread_id}}
-        
+
         current_state = agent.get_state(config)
         print("Current state: ", current_state)
         print("Next nodes:", current_state.next)
-        
+
         agent.update_state(
-            config, 
+            config,
             {"user_answer":request.user_answer},
             as_node="quiz"  # ← tells LangGraph this update comes from after quiz nod, — so it knows to run evaluate next, not restart from orchestrator.
         )
-        
+
         # invoke() = give me the final answer
         # stream() = give me updates as each step completes
 

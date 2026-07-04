@@ -1,6 +1,6 @@
-from config import collection, model, anthropic_client
+from core.config import collection, model, anthropic_client
 import os
-from graph import extract_entities, get_related_concepts
+from core.graph import extract_entities, get_related_concepts
 import json
 
 def embed_ques(question: str):
@@ -32,26 +32,23 @@ def get_related_from_graph(question: str):
 
 def get_ans_from_claud(question, chunks, graph_concepts):
     context = "\n\n".join(chunks)
-    
+
     if graph_concepts:
         context += "\n\nRelated concepts from knowledge graph: " + ", ".join(graph_concepts)
 
 
     prompt="You are a helpful assistant. Answer the question using only the context provided. Cite which part of the context you used."
     grouding_context=f"Context:\n{context}\n\nQuestion: {question}"
-    
+
     response = anthropic_client.messages.create(
         model="claude-opus-4-5",
         max_tokens=1024,
         system=prompt,
         messages=[
             {
-                "role": "user", 
+                "role": "user",
                 "content": grouding_context
             }
         ]
     )
     return response
-    
-
-

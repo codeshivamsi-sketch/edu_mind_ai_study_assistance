@@ -222,3 +222,16 @@ eval_venv/
 backend/checkpoints.db
 backend/checkpoints.db-shm
 backend/checkpoints.db-wal
+
+
+# Vector DB (runtime data, don't commit)
+chroma_db/
+
+# SQLite checkpoints
+checkpoints.db
+checkpoints.db-shm
+checkpoints.db-wal
+
+# Eval venv
+eval/eval_venv/
+eval_venv/

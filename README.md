@@ -1,4 +1,4 @@
-# EduMind AI — Study Assistant
+# Study Assistant AI — EduMind
 
 An AI-powered study assistant built with RAG, Knowledge Graph, Multi-agent orchestration, and RAGAs evaluation. Upload a PDF curriculum and ask questions, generate quizzes, get evaluated, or get summaries — all grounded in your content.
 
@@ -82,19 +82,22 @@ flowchart TD
 ```
 edu_mind_ai/
 ├── backend/
-│   ├── main.py          # FastAPI app + all endpoints
-│   ├── config.py        # Shared clients (Chroma, Neo4j, Anthropic, embedder)
-│   ├── ingest.py        # PDF parsing, chunking, embedding, Chroma storage
-│   ├── graph.py         # Entity extraction + Neo4j operations
-│   ├── query.py         # Vector search + graph traversal + Claude answer
-│   ├── agents.py        # LangGraph nodes + graph definition
-│   ├── model.py         # EduMindState TypedDict
+│   ├── api/
+│   │   └── main.py              # FastAPI app + all endpoints
+│   ├── core/
+│   │   ├── config.py            # Shared clients (Chroma, Neo4j, Anthropic, embedder)
+│   │   ├── model.py             # Pydantic models + EduMindState TypedDict
+│   │   ├── ingest.py            # PDF parsing, chunking, embedding, Chroma storage
+│   │   ├── query.py             # Vector search + graph traversal + Claude answer
+│   │   └── graph.py             # Entity extraction + Neo4j operations
+│   ├── agents/
+│   │   └── agents.py            # LangGraph nodes + graph definition
+│   ├── mcp/
+│   │   └── server.py            # MCP server exposing 3 tools to Claude Desktop
 │   ├── eval/
 │   │   ├── run_eval.py          # RAGAs evaluation script
 │   │   ├── golden_dataset.json  # 30 Q&A pairs for evaluation
 │   │   └── requirements-eval.txt
-│   ├── mcp/
-│   │   └── server.py            # MCP server exposing 3 tools to Claude Desktop
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── docker-compose.yml

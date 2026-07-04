@@ -1,8 +1,8 @@
 import os
 from anthropic import Anthropic
-from config import neo4j_driver
+from core.config import neo4j_driver
 import json
-from config import anthropic_client
+from core.config import anthropic_client
 import re
 
 template = {
@@ -18,7 +18,7 @@ def extract_entities(chunk: str):
         messages=[{"role": "user", "content": chunk}]
     )
     raw = response.content[0].text.strip()
-    
+
     json_match = re.search(r'\{.*\}', raw, re.DOTALL)
     if not json_match:
         print("Claude returned unexpected:", raw)
@@ -31,7 +31,7 @@ def store_entities(entities_json: str):
     with neo4j_driver.session() as session:
         for entity in data["entities"]:
             session.run("MERGE (e:Concept {name: $name})", name=entity)
-        
+
         for rel in data["relationships"]:
             session.run("""
                 MATCH (a:Concept {name: $from_concept})
