@@ -11,6 +11,7 @@ An AI-powered study assistant built with RAG, Knowledge Graph, Multi-agent orche
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 ![LangSmith](https://img.shields.io/badge/LangSmith-Tracing-F5A623?style=flat)
 ![RAGAs](https://img.shields.io/badge/RAGAs-Evaluation-6C3483?style=flat)
+![MCP](https://img.shields.io/badge/MCP-Model_Context_Protocol-000000?style=flat&logo=anthropic&logoColor=white)
 
 ---
 
@@ -71,6 +72,7 @@ flowchart TD
 | HITL Checkpointing | SQLite via LangGraph |
 | Tracing | LangSmith |
 | RAG Evaluation | RAGAs |
+| MCP Server | Anthropic MCP Python SDK |
 | Containerization | Docker Compose |
 
 ---
@@ -91,6 +93,8 @@ edu_mind_ai/
 │   │   ├── run_eval.py          # RAGAs evaluation script
 │   │   ├── golden_dataset.json  # 30 Q&A pairs for evaluation
 │   │   └── requirements-eval.txt
+│   ├── mcp/
+│   │   └── server.py            # MCP server exposing 3 tools to Claude Desktop
 │   ├── requirements.txt
 │   └── Dockerfile
 ├── docker-compose.yml
@@ -130,6 +134,24 @@ NEO4J_PASSWORD=password
 LANGCHAIN_API_KEY=your-key
 LANGCHAIN_TRACING_V2=true
 LANGCHAIN_PROJECT=edumind
+```
+
+---
+
+## Running Evaluation
+
+```bash
+# Create eval environment (Python 3.11 required)
+python3.11 -m venv backend/eval/eval_venv
+source backend/eval/eval_venv/bin/activate
+pip install -r backend/eval/requirements-eval.txt
+
+# Make sure Docker is running first
+docker-compose up -d
+
+# Run RAGAs evaluation
+cd backend
+python eval/run_eval.py
 ```
 
 ---
@@ -180,22 +202,6 @@ Content-Type: application/json
 {"evaluation": "Score: 7/10 — Great answer on..."}
 ```
 
-## Running Evaluation
-
-```bash
-# Create eval environment (Python 3.11 required)
-python3.11 -m venv backend/eval/eval_venv
-source backend/eval/eval_venv/bin/activate
-pip install -r backend/eval/requirements-eval.txt
-
-# Make sure Docker is running first
-docker-compose up -d
-
-# Run RAGAs evaluation
-cd backend
-python eval/run_eval.py
-```
-
 ### Health Check
 ```bash
 GET /health
@@ -243,3 +249,37 @@ GET /health
 | Context Recall | 1.00 | All needed information was present in retrieved chunks |
 
 **Key finding:** Context precision at 0.70 indicates fixed-size chunking (500 chars) retrieves some noise alongside relevant chunks. Faithfulness and recall at 1.0 confirm the system never hallucinates and never misses needed information.
+
+### Phase 5 — MCP Server
+- Exposed EduMind as an MCP server using the Anthropic MCP Python SDK
+- Claude Desktop connects to the server and calls EduMind tools directly
+- 3 tools registered:
+
+| Tool | Description |
+|------|-------------|
+| `query_curriculum(question)` | RAG query over uploaded content — returns grounded answer with sources |
+| `get_related_concepts(topic)` | Neo4j graph traversal — returns related concepts for a topic |
+| `generate_quiz(topic, num_questions)` | Triggers Quiz Agent — returns quiz questions from curriculum |
+
+- MCP server runs as a subprocess launched by Claude Desktop via stdio transport
+- No extra HTTP server needed — communicates through stdin/stdout
+- Claude Desktop automatically discovers and calls tools based on user intent
+
+**Demo:** Open Claude Desktop → ask "quiz me on machine learning using my curriculum" → Claude calls `generate_quiz` → returns questions grounded in your uploaded PDF.
+
+#### Connect to Claude Desktop
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "edumind": {
+      "command": "/path/to/edu_mind_ai/venv/bin/python",
+      "args": ["/path/to/edu_mind_ai/backend/mcp/server.py"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop. Make sure Docker is running first.

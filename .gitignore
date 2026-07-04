@@ -219,3 +219,6 @@ __marimo__/
 
 
 eval_venv/
+backend/checkpoints.db
+backend/checkpoints.db-shm
+backend/checkpoints.db-wal
