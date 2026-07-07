@@ -1,6 +1,6 @@
 # Study Assistant AI — EduMind
 
-An AI-powered study assistant built with RAG, Knowledge Graph, Multi-agent orchestration, and RAGAs evaluation. Upload a PDF curriculum and ask questions, generate quizzes, get evaluated, or get summaries — all grounded in your content.
+An AI-powered study assistant built with RAG, Knowledge Graphs, multi-agent orchestration, and RAGAs evaluation. Upload a PDF curriculum and ask questions, generate quizzes, get evaluated, or get summaries — all grounded in your content. Built to develop hands-on familiarity with agentic AI.
 
 ![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=flat&logo=fastapi&logoColor=white)
